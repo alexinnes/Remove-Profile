@@ -1,4 +1,4 @@
-#Remote User Profile without needing Delprof
+# Remote User Profile without needing Delprof
 
 A small script that will allow you to remove a user profile without having to need delprof.
 
