@@ -11,26 +11,36 @@
 function Remove-Profile {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory=$false, Position=1)]
-            #Default Param is the local computer.
-            $computer = $env:COMPUTERNAME,
-        [Parameter(Mandatory=$True, Position=0)]
-            [string]$Username
+        [Parameter(
+            Mandatory=$false,
+            Position=1,
+            ValueFromPipeline = $True,
+            ValueFromPipelineByPropertyName = $True 
+        )]
+        [Alias("Computer", "__SERVER", "IPAddress")]
+        $computer = $env:COMPUTERNAME,
+
+        [Parameter(
+            Mandatory=$True,
+            Position=0
+        )]
+        [string]$username
 
     )
 
     begin {
         #Checks to see if the profile folder is on the computer.
         IF(!(Test-Path -path "\\$computer\c$\Users\$username")){
-            Write-Error -Exception "Cannot find user profile, please confrm $Username is on $Computer" -ErrorAction Stop
+            Write-Error -Exception "Cannot find user profile, please confrm $username is on $computer" -ErrorAction Stop
         }
+        
         $localProfilePath = "C:\\Users\\$username"
     }
 
     process {
         #Gets the profile
         $wmiQuery = "SELECT * FROM Win32_UserProfile WHERE localpath = '$localProfilePath'"
-        $profile = Get-WmiObject -Query $WMIQuery -ComputerName $computer
+        $profile = Get-WmiObject -Query $wmiQuery -ComputerName $computer
         If($profile.loaded){
             Write-Error "Cannot delete profile, profile is currently loaded." -ErrorAction Stop
         }
