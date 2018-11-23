@@ -1,5 +1,4 @@
-﻿ls
-<#
+﻿<#
 .Synopsis
    Removes user profiles from computer without the use of delprof
 .DESCRIPTION
@@ -29,6 +28,13 @@ function Remove-Profile {
     )
 
     begin {
+        
+        #Check to see if the computer is actually online
+        $onlineCheck = Test-Connection -ComputerName $computer -Count 2 -Quiet
+        IF(!($onlineCheck)){
+            Write-Error "$computer is not Online."
+        }
+
         #Checks to see if the profile folder is on the computer.
         IF(!(Test-Path -path "\\$computer\c$\Users\$username")){
             Write-Error -Exception "Cannot find user profile, please confrm $username is on $computer" -ErrorAction Stop
@@ -44,8 +50,15 @@ function Remove-Profile {
         If($profile.loaded){
             Write-Error "Cannot delete profile, profile is currently loaded." -ErrorAction Stop
         }
+
         #Pass the profile object and remove everything associated to it.
-        Remove-WmiObject -InputObject $profile
+        Remove-WmiObject -InputObject $profile -ErrorAction SilentlyContinue 
+
+        #final check
+        $finalCheck = Get-WmiObject -Query $wmiQuery -ComputerName $computer
+        If(!($finalCheck -eq $null)){
+            Write-Error  "User $($username) has NOT been removed from $computer"
+        }
     }
 
     end {
